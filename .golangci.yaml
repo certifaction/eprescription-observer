@@ -1,0 +1,49 @@
+run:
+  concurrency: 4
+  timeout: 180s
+  issues-exit-code: 1
+  tests: true
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+linters:
+  enable:
+    - govet
+    - gofmt
+    - errcheck
+    - goimports
+  disable:
+    - gocritic
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - stylecheck
+    - unconvert
+    - dupl
+    - goconst
+    - misspell
+    - nakedret
+    - unparam
+    - whitespace
+    - wsl
+    - lll
+    - prealloc
+    - bodyclose
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - gosec
+
+  fast: false
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
