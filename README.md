@@ -7,7 +7,7 @@ only validates proofs that are fetch afterward.
 This tool fetches and verifies consistency proofs from the E-Prescription API. Consistency proofs ensure:
 * Later versions contain all events from previous versions
 * No events were modified
-* All new events are appended after the old events
+* All new events are appended after old events
 # How to run
 ### build:
 ```shell
