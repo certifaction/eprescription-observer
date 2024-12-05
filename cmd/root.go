@@ -34,6 +34,7 @@ var rootCmd = &cobra.Command{
 
 		slog.Info("Initial consistency proof fetched", "size", previousProof.CurrentRoot.Size, "root_hash", previousProof.CurrentRoot.RootHash)
 
+		lastSuccessful := true
 		for {
 			newProof, err := FetchConsistencyProof(ctx, api, previousProof.CurrentRoot.Size)
 			if err != nil {
@@ -68,13 +69,18 @@ var rootCmd = &cobra.Command{
 				newHashDecoded,
 			)
 			if err != nil {
-				slog.Error("Failed to verify consistency proof", "error", err, "previous_size", previousProof.CurrentRoot.Size, "current_size", newProof.CurrentRoot.Size)
+				slog.Error("Failed to verify consistency proof", "error", err, "previous_size", previousProof.CurrentRoot.Size, "current_size", newProof.CurrentRoot.Size, "proof", decodedProofs)
+				lastSuccessful = false
 				continue
 			}
 
+			if !lastSuccessful {
+				slog.Info("Consistency proof verification succeeded after previous failure", "previous_size", previousProof.CurrentRoot.Size, "current_size", newProof.CurrentRoot.Size, "proof", decodedProofs)
+			}
 			slog.Info("Successfully verified consistency proof", "size", previousProof.CurrentRoot.Size, "root_hash", previousProof.CurrentRoot.RootHash, "new_size", newProof.CurrentRoot.Size, "new_root_hash", newProof.CurrentRoot.RootHash)
 
 			previousProof = newProof
+			lastSuccessful = true
 			slog.Info("Waiting for next consistency proof", "period", period)
 			time.Sleep(period)
 		}
