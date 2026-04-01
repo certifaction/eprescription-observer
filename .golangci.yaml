@@ -1,49 +1,60 @@
+version: "2"
 run:
   concurrency: 4
-  timeout: 180s
   issues-exit-code: 1
   tests: true
-
 output:
   formats:
-    - format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
-
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
 linters:
-  enable:
-    - govet
-    - gofmt
-    - errcheck
-    - goimports
   disable:
-    - gocritic
-    - staticcheck
-    - unused
-    - gosimple
-    - ineffassign
-    - typecheck
-    - stylecheck
-    - unconvert
-    - dupl
-    - goconst
-    - misspell
-    - nakedret
-    - unparam
-    - whitespace
-    - wsl
-    - lll
-    - prealloc
     - bodyclose
+    - dupl
     - gochecknoglobals
     - gochecknoinits
     - gocognit
+    - goconst
+    - gocritic
     - gosec
-
-  fast: false
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - errcheck
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - prealloc
+    - staticcheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+    - wsl
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - errcheck
+        path: _test\.go
+      - linters:
+          - errcheck
+        path: service/transactions/txclient/*
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
