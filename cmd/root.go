@@ -17,7 +17,7 @@ import (
 	"github.com/transparency-dev/merkle/rfc6962"
 )
 
-var period time.Duration
+var period, failurePeriod time.Duration
 var api string
 
 var rootCmd = &cobra.Command{
@@ -39,24 +39,28 @@ var rootCmd = &cobra.Command{
 			newProof, err := FetchConsistencyProof(ctx, api, previousProof.CurrentRoot.Size)
 			if err != nil {
 				slog.Error("Failed to fetch consistency proof", "error", err, "previous_size", previousProof.CurrentRoot.Size)
+				time.Sleep(failurePeriod)
 				continue
 			}
 
 			previousHashDecoded, err := hex.DecodeString(previousProof.CurrentRoot.RootHash)
 			if err != nil {
 				slog.Error("Failed to decode last root hash", "error", err, "previous_size", previousProof.CurrentRoot.Size)
-				return err
+				time.Sleep(failurePeriod)
+				continue
 			}
 
 			newHashDecoded, err := hex.DecodeString(newProof.CurrentRoot.RootHash)
 			if err != nil {
 				slog.Error("Failed to decode new root hash", "error", err, "previous_size", previousProof.CurrentRoot.Size, "current_size", newProof.CurrentRoot.Size)
+				time.Sleep(failurePeriod)
 				continue
 			}
 
 			decodedProofs, err := decodeProofs(newProof.Proof)
 			if err != nil {
 				slog.Error("Failed to decode proof hash", "error", err, "previous_size", previousProof.CurrentRoot.Size, "current_size", newProof.CurrentRoot.Size)
+				time.Sleep(failurePeriod)
 				continue
 			}
 
@@ -69,8 +73,13 @@ var rootCmd = &cobra.Command{
 				newHashDecoded,
 			)
 			if err != nil {
-				slog.Error("Failed to verify consistency proof", "error", err, "previous_size", previousProof.CurrentRoot.Size, "current_size", newProof.CurrentRoot.Size, "proof", decodedProofs)
+				level := slog.LevelError
+				if lastSuccessful {
+					level = slog.LevelWarn
+				}
+				slog.Log(ctx, level, "Failed to verify consistency proof", "error", err, "previous_size", previousProof.CurrentRoot.Size, "current_size", newProof.CurrentRoot.Size, "proof", decodedProofs)
 				lastSuccessful = false
+				time.Sleep(failurePeriod)
 				continue
 			}
 
@@ -141,6 +150,7 @@ func FetchConsistencyProof(ctx context.Context, api string, previousSize int) (C
 
 func Execute() {
 	rootCmd.Flags().DurationVar(&period, "period", time.Hour, "Time to wait between consistency proofs checks(1h by default)")
+	rootCmd.Flags().DurationVar(&failurePeriod, "period-failure", 5*time.Second, "Time to wait between consistency proofs checks in case of failed attempt(5s by default)")
 	rootCmd.Flags().StringVar(&api, "api", "https://api.certifaction.io/", "API URL to fetch consistency proofs")
 
 	if err := rootCmd.Execute(); err != nil {

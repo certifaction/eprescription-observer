@@ -41,20 +41,12 @@ jobs:
             file_name: certifaction
             artifact_name: certifaction
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
-      - name: Set up Go 1.22
-        uses: actions/setup-go@v2
-        env:
-          RUNNER_TEMP: /tmp
+      - name: Set up Go 1.26
+        uses: actions/setup-go@v6
         with:
-          go-version: 1.22
-
-      - name: Create/Restore cache
-        uses: actions/cache@v1
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ matrix.os }}-${{ matrix.arch}}
+          go-version: 1.26
 
       - name: Run Build
         run: make build
@@ -62,7 +54,7 @@ jobs:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact_name }}-${{ matrix.os }}-${{ matrix.arch }}
           path: ${{ matrix.file_name }}
@@ -72,7 +64,7 @@ jobs:
     name: Linting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v9
